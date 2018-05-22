@@ -14,6 +14,7 @@ public Driver(long licenseId, String name, int birthYear, String phone) {
 	this.name = name;
 	this.birthYear = birthYear;
 	this.phone = phone;
+	
 }
 public Driver(){}
 public long getLicenseId() {
