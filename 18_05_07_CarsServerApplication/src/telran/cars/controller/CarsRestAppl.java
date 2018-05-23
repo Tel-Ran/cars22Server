@@ -3,21 +3,26 @@ package telran.cars.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import telran.cars.model.IRentCompany;
-import telran.cars.model.RentCompanyEmbedded;
+import telran.cars.model.RentCompanyMongo;
 import telran.cars.dto.*;
 @SpringBootApplication
 @RestController
+@ComponentScan("telran.cars.model")
+@EnableMongoRepositories("telran.cars.repo")
 public class CarsRestAppl {
-IRentCompany company=RentCompanyEmbedded.restoreFromFile
-("cars.data");
+	@Autowired
+IRentCompany company;
 @PostMapping(value=CarsApiConstants.ADD_CAR_MODEL)
 CarsReturnCode addCarModel(@RequestBody Model carModel) {
 	return company.addModel(carModel);
