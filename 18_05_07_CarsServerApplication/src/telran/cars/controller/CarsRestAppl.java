@@ -7,19 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import telran.cars.model.IRentCompany;
-import telran.cars.model.RentCompanyMongo;
+import telran.cars.model.*;
 import telran.cars.dto.*;
 @SpringBootApplication
 @RestController
 @ComponentScan("telran.cars.model")
-@EnableMongoRepositories("telran.cars.repo")
+@EnableJpaRepositories("telran.cars.repo")
 public class CarsRestAppl {
 	@Autowired
 IRentCompany company;

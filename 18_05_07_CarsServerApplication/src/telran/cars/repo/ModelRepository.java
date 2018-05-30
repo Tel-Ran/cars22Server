@@ -1,14 +1,12 @@
 package telran.cars.repo;
 
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import telran.cars.entities.mongo.ModelCrud;
+import telran.cars.entities.ModelJpa;
 
 public interface ModelRepository extends
-MongoRepository<ModelCrud, String> {
+JpaRepository<ModelJpa, String> {
 
 	
 

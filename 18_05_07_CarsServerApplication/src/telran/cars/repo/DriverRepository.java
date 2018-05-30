@@ -2,14 +2,13 @@ package telran.cars.repo;
 
 import java.util.stream.Stream;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import telran.cars.dto.Driver;
-import telran.cars.entities.mongo.DriverCrud;
+import telran.cars.entities.DriverJpa;
 
 public interface DriverRepository extends
-MongoRepository<DriverCrud, Long> {
+JpaRepository<DriverJpa, Long> {
 
-	Stream<DriverCrud> findAllBy();
+	Stream<DriverJpa> findAllBy();
 
 }

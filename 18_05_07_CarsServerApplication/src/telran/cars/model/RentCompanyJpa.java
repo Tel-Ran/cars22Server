@@ -9,13 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import telran.cars.dto.*;
-import telran.cars.entities.mongo.*;
+import telran.cars.entities.CarJpa;
+import telran.cars.entities.DriverJpa;
+import telran.cars.entities.ModelJpa;
 import telran.cars.repo.CarRepository;
 import telran.cars.repo.DriverRepository;
 import telran.cars.repo.ModelRepository;
 import telran.cars.repo.RecordsRepository;
 @Service
-public class RentCompanyMongo extends AbstractRentCompany {
+public class RentCompanyJpa extends AbstractRentCompany {
 @Autowired
 ModelRepository models;
 @Autowired
@@ -28,7 +30,11 @@ RecordsRepository records;
 	public CarsReturnCode addModel(Model model) {
 		if(models.existsById(model.getModelName()))
 			return CarsReturnCode.MODEL_EXISTS;
-		models.save(new ModelCrud(model));
+		models.save(new ModelJpa
+				(model.getModelName(),
+				model.getGasTank(),
+				model.getCompany(),
+				model.getCountry(), model.getPriceDay()));
 		return CarsReturnCode.OK;
 	}
 
@@ -38,7 +44,11 @@ RecordsRepository records;
 			return CarsReturnCode.NO_MODEL;
 		if(cars.existsById(car.getRegNumber()))
 			return CarsReturnCode.CAR_EXISTS;
-		cars.save(new CarCrud(car));
+		ModelJpa model=models.findById
+				(car.getModelName()).get();
+		cars.save(new CarJpa
+		(car.getRegNumber(), car.getColor(),
+		car.getState(), false, false, model));
 		return CarsReturnCode.OK;
 	}
 
@@ -46,19 +56,30 @@ RecordsRepository records;
 	public CarsReturnCode addDriver(Driver driver) {
 		if(drivers.existsById(driver.getLicenseId()))
 			return CarsReturnCode.DRIVER_EXISTS;
-		drivers.save(new DriverCrud(driver));
+		drivers.save(new DriverJpa
+				(driver.getLicenseId(), driver.getName(),
+				driver.getBirthYear(),
+				driver.getPhone()));
 		return CarsReturnCode.OK;
 	}
 
 	@Override
 	public Model getModel(String modelName) {
-		
-		return models.findById(modelName).get().getModel();
+		ModelJpa modelJpa=models.findById(modelName).get();
+		return modelJpa==null?null:getModel(modelJpa);
+	}
+
+	private Model getModel(ModelJpa modelJpa) {
+		Model res=new Model
+				(modelJpa.getModelName(),modelJpa.getGasTank(),
+						modelJpa.getCompany(), modelJpa.getCountry(),
+						modelJpa.getPriceDay());
+		return res;
 	}
 
 	@Override
 	public Car getCar(String carNumber) {
-		return cars.findById(carNumber).get().getCar();
+		return cars.findById(carNumber).get();
 	}
 
 	@Override

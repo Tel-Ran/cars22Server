@@ -2,14 +2,13 @@ package telran.cars.repo;
 
 import java.util.stream.Stream;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import telran.cars.dto.Car;
-import telran.cars.entities.mongo.CarCrud;
+import telran.cars.entities.CarJpa;
 
 public interface CarRepository extends 
-MongoRepository<CarCrud, String> {
+JpaRepository<CarJpa, String> {
 
-	Stream<CarCrud> findAllBy();
+	Stream<CarJpa> findAllBy();
 
 }

@@ -4,23 +4,21 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-import telran.cars.dto.Car;
-import telran.cars.dto.RentRecord;
-import telran.cars.entities.mongo.RentRecordCrud;
+import telran.cars.entities.RecordJpa;
 
 public interface RecordsRepository extends
-MongoRepository<RentRecordCrud, Long> {
+JpaRepository<RecordJpa, Integer> {
 
-	RentRecordCrud findByCarNumberAndReturnDateNull(String carNumber);
+	RecordJpa findByCarNumberAndReturnDateNull(String carNumber);
 
-	Stream<RentRecordCrud> findByReturnDateBefore(LocalDate returnedDateDelete);
+	Stream<RecordJpa> findByReturnDateBefore(LocalDate returnedDateDelete);
 
-	Stream<RentRecordCrud> findByCarNumber(String carNumber);
+	Stream<RecordJpa> findByCarNumber(String carNumber);
 
-	Stream<RentRecordCrud> findByLicenseId(long licenseId);
+	Stream<RecordJpa> findByLicenseId(long licenseId);
 
-	Stream<RentRecordCrud> findAllBy();
+	Stream<RecordJpa> findAllBy();
 
 }
