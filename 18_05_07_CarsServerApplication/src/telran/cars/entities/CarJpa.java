@@ -25,8 +25,12 @@ private boolean inUse;
 private boolean flRemoved;
 @ManyToOne
 private ModelJpa model;
-@OneToMany(mappedBy="car")
+@OneToMany(mappedBy="car",cascade=CascadeType.REMOVE)//physical removing car will cause removing
+//all related records
 List<RecordJpa> records;
+public List<RecordJpa> getRecords() {
+	return records;
+}
 public CarJpa() {}
 public State getState() {
 	return state;

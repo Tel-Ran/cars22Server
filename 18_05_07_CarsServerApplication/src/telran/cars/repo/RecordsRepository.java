@@ -11,7 +11,7 @@ import telran.cars.entities.RecordJpa;
 public interface RecordsRepository extends
 JpaRepository<RecordJpa, Integer> {
 
-	RecordJpa findByCarNumberAndReturnDateNull(String carNumber);
+	
 
 	Stream<RecordJpa> findByReturnDateBefore(LocalDate returnedDateDelete);
 
@@ -20,5 +20,9 @@ JpaRepository<RecordJpa, Integer> {
 	Stream<RecordJpa> findByLicenseId(long licenseId);
 
 	Stream<RecordJpa> findAllBy();
+
+	RecordJpa findByCarRegNumberAndReturnDateNull(String carNumber);
+
+	List<RecordJpa> findByCarFlRemovedTrueAndReturnDateBefore(LocalDate returnedDateDelete);
 
 }

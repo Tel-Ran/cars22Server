@@ -1,17 +1,20 @@
 package telran.cars.model;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import telran.cars.dto.*;
 import telran.cars.entities.CarJpa;
 import telran.cars.entities.DriverJpa;
 import telran.cars.entities.ModelJpa;
+import telran.cars.entities.RecordJpa;
 import telran.cars.repo.CarRepository;
 import telran.cars.repo.DriverRepository;
 import telran.cars.repo.ModelRepository;
@@ -27,6 +30,7 @@ DriverRepository drivers;
 @Autowired
 RecordsRepository records;
 	@Override
+	@Transactional
 	public CarsReturnCode addModel(Model model) {
 		if(models.existsById(model.getModelName()))
 			return CarsReturnCode.MODEL_EXISTS;
@@ -39,6 +43,7 @@ RecordsRepository records;
 	}
 
 	@Override
+	@Transactional
 	public CarsReturnCode addCar(Car car) {
 		if(!models.existsById(car.getModelName()))
 			return CarsReturnCode.NO_MODEL;
@@ -53,6 +58,7 @@ RecordsRepository records;
 	}
 
 	@Override
+	@Transactional
 	public CarsReturnCode addDriver(Driver driver) {
 		if(drivers.existsById(driver.getLicenseId()))
 			return CarsReturnCode.DRIVER_EXISTS;
@@ -79,63 +85,71 @@ RecordsRepository records;
 
 	@Override
 	public Car getCar(String carNumber) {
-		return cars.findById(carNumber).get();
+		CarJpa carJpa=cars.findById(carNumber).get();
+		return carJpa==null?null:getCarDto(carJpa);
+	}
+
+	private Car getCarDto(CarJpa carJpa) {
+		return new Car(carJpa.getRegNumber(), carJpa.getColor(),
+				carJpa.getModel().getModelName());
 	}
 
 	@Override
 	public Driver getDriver(long licenseId) {
-		return drivers.findById(licenseId).get().getDriver();
+		DriverJpa driverJpa = drivers.findById(licenseId).get();
+		return driverJpa==null?null:getDriverDto(driverJpa);
+	}
+
+	private Driver getDriverDto(DriverJpa driverJpa) {
+		return new Driver(driverJpa.getLicenseId(),
+				driverJpa.getName(), driverJpa.getBirthYear(), driverJpa.getPhone());
 	}
 
 	@Override
+	@Transactional
 	public CarsReturnCode rentCar
 	(String carNumber, long licenseId, LocalDate rentDate, int rentDays) {
-		CarCrud car=cars.findById(carNumber).get();
+		CarJpa car=cars.findById(carNumber).get();
 		if(car==null||car.isFlRemoved())
 			return CarsReturnCode.NO_CAR;
 		if(car.isInUse())
 			return CarsReturnCode.CAR_IN_USE;
-		if(getDriver(licenseId)==null)
+		DriverJpa driver=drivers.findById(licenseId).get();
+		if(driver==null)
 			return CarsReturnCode.NO_DRIVER;
-		RentRecord record=new RentRecord(licenseId, carNumber, rentDate, rentDays);
-		records.save(new RentRecordCrud(record));
-		setInUse(true,car);
+		RecordJpa recordJpa=new RecordJpa(driver, car, rentDate, rentDays);
+		records.save(recordJpa);
+		car.setInUse(true);
 		return CarsReturnCode.OK;
 	}
-	private void setInUse(boolean inUse, CarCrud car) {
-		car.setInUse(inUse);
-		cars.save(car);
-		
-	}
+	
 	@Override
-	public CarsReturnCode returnCar(String carNumber, long licenseId, LocalDate returnDate, int gasTankPercent,
+	@Transactional
+	public CarsReturnCode returnCar(String carNumber, long licenseId, LocalDate returnDate,
+			int gasTankPercent,
 			int damages) {
-		if(getDriver(licenseId)==null)
-			return CarsReturnCode.NO_DRIVER;
-		RentRecordCrud recordCrud=records.findByCarNumberAndReturnDateNull(carNumber);
-		if(recordCrud==null)
+		RecordJpa recordJpa=records.findByCarRegNumberAndReturnDateNull(carNumber);
+		if(recordJpa==null)
 			return CarsReturnCode.CAR_NOT_RENTED;
-		CarCrud car=cars.findById(carNumber).get();
-		if(car==null||car.isFlRemoved())
-			return CarsReturnCode.NO_CAR;
-		
-		if(returnDate.isBefore(recordCrud.getRentDate()))
+		if(returnDate.isBefore(recordJpa.getRentDate()))
 			return CarsReturnCode.RETURN_DATE_WRONG;
-		updateRecordCrud(returnDate, gasTankPercent, damages, recordCrud,car);
+		CarJpa car=cars.findById(carNumber).get();
+		updateRecordCrud(returnDate, gasTankPercent, damages, recordJpa,car);
 		updateCarData(damages, car);
 		return CarsReturnCode.OK;
 	}
 
-	private void updateRecordCrud(LocalDate returnDate, int gasTankPercent, int damages, RentRecordCrud recordCrud,CarCrud car) {
-		recordCrud.setDamages(damages);
-		recordCrud.setGasTankPercent(gasTankPercent);
-		recordCrud.setReturnDate(returnDate);
-		setCost(recordCrud,car);
-		records.save(recordCrud);
+	private void updateRecordCrud(LocalDate returnDate, int gasTankPercent, int damages,
+			RecordJpa recordJpa,CarJpa car) {
+		recordJpa.setDamages(damages);
+		recordJpa.setGasTankPercent(gasTankPercent);
+		recordJpa.setReturnDate(returnDate);
+		setCost(recordJpa,car);
+		
 	}
 
 	
-	private void updateCarData(int damages, CarCrud car) {
+	private void updateCarData(int damages, CarJpa car) {
 		if(damages>0 && damages<10)
 			car.setState(State.GOOD);
 		else if(damages>=10&&damages<30)
@@ -143,28 +157,28 @@ RecordsRepository records;
 		else if(damages>=30)
 			car.setFlRemoved(true);
 		car.setInUse(false);
-		cars.save(car);
+		
 	}
 
-	private void setCost(RentRecordCrud record, CarCrud car) {
+	private void setCost(RecordJpa record, CarJpa car) {
 		long period=ChronoUnit.DAYS.between
 				(record.getRentDate(), record.getReturnDate());
 		float costPeriod=0;
-		Model model=getModel(car.getModelName());
+		ModelJpa model=car.getModel();
 		float costGas=0;
 		costPeriod = getCostPeriod(record, period, model);
 		costGas = getCostGas(record, model);
 		record.setCost(costPeriod+costGas);
 		
 	}
-	private float getCostGas(RentRecordCrud record, Model model) {
+	private float getCostGas(RecordJpa record, ModelJpa model) {
 		float costGas;
 		int gasTank=model.getGasTank();
 		float litersCost=(float)(100-record.getGasTankPercent())*gasTank/100;
 		costGas=litersCost*companyData.getGasPrice();
 		return costGas;
 	}
-	private float getCostPeriod(RentRecordCrud record, long period, Model model) {
+	private float getCostPeriod(RecordJpa record, long period, ModelJpa model) {
 		float costPeriod;
 		long delta=period-record.getRentDays();
 		float additionalPeriodCost=0;
@@ -187,51 +201,35 @@ RecordsRepository records;
 	}
 
 	@Override
+	@Transactional
 	public CarsReturnCode removeCar(String carNumber) {
-		CarCrud car=cars.findById(carNumber).get();
+		CarJpa car=cars.findById(carNumber).get();
 		if(car==null)
 			return CarsReturnCode.NO_CAR;
 		if(car.isInUse())
 			return CarsReturnCode.CAR_IN_USE;
 		car.setFlRemoved(true);
-		cars.save(car);
 		return CarsReturnCode.OK;
 	}
 
 	@Override
+	@Transactional
 	public List<Car> clear(LocalDate currentDate, int days) {
 		LocalDate returnedDateDelete=currentDate.minusDays(days);
-		List<RentRecordCrud> recordsForDelete=getRecordsForDelete(returnedDateDelete);
-		List<CarCrud> carsForDelete=getCarsForDelete(recordsForDelete);
-		deleteRecords(recordsForDelete);
-		deleteCars(carsForDelete);
-		return toCars(carsForDelete);
+		List<RecordJpa> recordsForDelete=getRecordsForDelete(returnedDateDelete);
+		List<CarJpa> carsForDelete=getCarsJpaForDelete(recordsForDelete);
+		List<Car> res=carsForDelete.stream().map(this::getCarDto).collect(Collectors.toList());
+		carsForDelete.forEach(cars::delete);
+		return res;
 	}
 	
-	private List<Car> toCars(List<CarCrud> carsCrud) {
-		return carsCrud.stream()
-				.map(CarCrud::getCar)
+	private List<CarJpa> getCarsJpaForDelete(List<RecordJpa> recordsForDelete) {
+		
+		return recordsForDelete.stream().map(RecordJpa::getCar)
 				.collect(Collectors.toList());
 	}
-
-	private void deleteCars(List<CarCrud> carsForDelete) {
-		carsForDelete.forEach(c->cars.delete(c));
-		
-	}
-
-	private void deleteRecords(List<RentRecordCrud> recordsForDelete) {
-		recordsForDelete.forEach(r->records.delete(r));
-		
-	}
-
-	private List<CarCrud> getCarsForDelete(List<RentRecordCrud> recordsForDelete) {
-		
-		return recordsForDelete.stream().map(r->cars.findById(r.getCarNumber()).get())
-				.distinct().collect(Collectors.toList());
-	}
-	private List<RentRecordCrud> getRecordsForDelete(LocalDate returnedDateDelete) {
-		return records.findByReturnDateBefore(returnedDateDelete).filter
-		(r->getCar(r.getCarNumber()).isFlRemoved()).collect(Collectors.toList());
+	private List<RecordJpa> getRecordsForDelete(LocalDate returnedDateDelete) {
+		return records.findByCarFlRemovedTrueAndReturnDateBefore(returnedDateDelete);
 		
 	}
 
@@ -241,9 +239,13 @@ RecordsRepository records;
 
 	@Override
 	public List<Driver> getCarDrivers(String carNumber) {
-		List<Driver> drivers=records.findByCarNumber(carNumber)
-				.map(r->getDriver(r.getLicenseId())).collect(Collectors.toList());
-		return drivers;
+		CarJpa car=cars.findById(carNumber).get();
+		if(car==null)
+			return new ArrayList<>();
+		List<Driver> res=car.getRecords().stream()
+				.map(r->getDriverDto(r.getDriver())).distinct()
+				.collect(Collectors.toList());
+		return res;
 	}
 
 	@Override

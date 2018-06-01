@@ -19,6 +19,9 @@ private LocalDate returnDate;
 private int gasTankPercent;
 private int rentDays;
 private float cost;
+public void setCost(float cost) {
+	this.cost = cost;
+}
 private int damages;
 public RecordJpa() {}
 public LocalDate getReturnDate() {
