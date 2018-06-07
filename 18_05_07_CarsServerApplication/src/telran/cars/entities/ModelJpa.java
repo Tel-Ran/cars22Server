@@ -19,7 +19,7 @@ private int gasTank;
 private String company;
 private String country;
 private int priceDay;
-@OneToMany(mappedBy="cars")
+@OneToMany(mappedBy="model")
 List<CarJpa> cars;
 public ModelJpa() {}
 public int getPriceDay() {

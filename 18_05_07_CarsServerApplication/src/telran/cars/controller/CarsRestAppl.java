@@ -6,11 +6,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import telran.cars.model.*;
@@ -19,6 +22,7 @@ import telran.cars.dto.*;
 @RestController
 @ComponentScan("telran.cars.model")
 @EnableJpaRepositories("telran.cars.repo")
+@EntityScan("telran.cars.entities")
 public class CarsRestAppl {
 	@Autowired
 IRentCompany company;
@@ -94,6 +98,16 @@ List<Car> getDriverCars(long licenseId) {
 String save() {
 	company.save();
 	return "should be saved";
+}
+@GetMapping(value=CarsApiConstants.MOST_POPULAR_CARS)
+Iterable<String> getMostPopularCarModels(@RequestParam
+		(CarsApiConstants.YEAR_FROM) int from, @RequestParam
+		(CarsApiConstants.YEAR_TO) int to){
+	return company.getMostPopularModels(from, to);
+}
+@GetMapping(value=CarsApiConstants.MOST_PROFIT_CARS)
+Iterable<String> getMostProfitCarModels(){
+	return company.getMostProfitableModels();
 }
 
 	public static void main(String[] args) {

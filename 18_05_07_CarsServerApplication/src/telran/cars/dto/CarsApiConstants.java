@@ -20,6 +20,10 @@ String RETURN_CAR="return_car";
 String GET_DRIVER_CARS="get_driver_cars";
 String GET_CAR_DRIVERS="get_car_drivers";
 String SAVE="save";
+String MOST_POPULAR_CARS = "most_poplar_cars";
+String MOST_PROFIT_CARS = "most_profit_cars";
+String YEAR_FROM = "from";
+String YEAR_TO = "to";
 
 
 }

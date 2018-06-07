@@ -16,8 +16,9 @@ public interface IRentCompany {
 	Driver getDriver(long licenseId);
 	CarsReturnCode rentCar(String carNumber,long licenseId,
 	LocalDate rentDate,int rentDays);//(OK,CAR_IN_USE,NO_CAR,NO_DRIVER)
-	    
-	CarsReturnCode returnCar(String carNumber,long licenseId,
+	 Iterable<String> getMostPopularModels(int yearFrom, int yearTo);  
+	 Iterable<String> getMostProfitableModels();
+	 CarsReturnCode returnCar(String carNumber,long licenseId,
 	LocalDate returnDate,int gasTankPercent,
 	      int  damages);//(OK,NO_DRIVER,CAR_NOT_RENTED,
 	      // RETURN_DATE_WRONG) In the case of damages up to 10% state is GOOD, 

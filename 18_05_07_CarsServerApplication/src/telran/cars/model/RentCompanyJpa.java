@@ -71,7 +71,7 @@ RecordsRepository records;
 
 	@Override
 	public Model getModel(String modelName) {
-		ModelJpa modelJpa=models.findById(modelName).get();
+		ModelJpa modelJpa=models.findById(modelName).orElse(null);
 		return modelJpa==null?null:getModel(modelJpa);
 	}
 
@@ -85,7 +85,7 @@ RecordsRepository records;
 
 	@Override
 	public Car getCar(String carNumber) {
-		CarJpa carJpa=cars.findById(carNumber).get();
+		CarJpa carJpa=cars.findById(carNumber).orElse(null);
 		return carJpa==null?null:getCarDto(carJpa);
 	}
 
@@ -96,7 +96,7 @@ RecordsRepository records;
 
 	@Override
 	public Driver getDriver(long licenseId) {
-		DriverJpa driverJpa = drivers.findById(licenseId).get();
+		DriverJpa driverJpa = drivers.findById(licenseId).orElse(null);
 		return driverJpa==null?null:getDriverDto(driverJpa);
 	}
 
@@ -239,7 +239,7 @@ RecordsRepository records;
 
 	@Override
 	public List<Driver> getCarDrivers(String carNumber) {
-		CarJpa car=cars.findById(carNumber).get();
+		CarJpa car=cars.findById(carNumber).orElse(null);
 		if(car==null)
 			return new ArrayList<>();
 		List<Driver> res=car.getRecords().stream()
@@ -250,32 +250,49 @@ RecordsRepository records;
 
 	@Override
 	public List<Car> getDriverCars(long licenseId) {
-		List<Car> res=records.findByLicenseId(licenseId)
-				.map(r->getCar(r.getCarNumber())).collect(Collectors.toList());
+		DriverJpa driver=drivers.findById(licenseId).orElse(null);
+		if(driver==null)
+			return new ArrayList<>();
+		List<Car> res=driver.getRecords().stream()
+				.map(r->getCarDto(r.getCar())).distinct()
+				.collect(Collectors.toList());
 		return res;
 	}
 
 	@Override
+	@Transactional
 	public Stream<Car> getAllCars() {
 		
-		return cars.findAllBy().map(CarCrud::getCar);
+		return cars.findAll().stream().map(this::getCarDto);
 	}
 
 	@Override
+	@Transactional
 	public Stream<Driver> getAllDrivers() {
-		return drivers.findAllBy().map(DriverCrud::getDriver);
+		return drivers.findAll().stream().map(this::getDriverDto);
 	}
 
 	@Override
+	@Transactional
 	public Stream<RentRecord> getAllRecords() {
-		return records.findAllBy().map(RentRecordCrud::getRentRecord);
+		return records.findAll().stream().map(this::getRecordDto);
 	}
-
+RentRecord getRecordDto(RecordJpa recordJpa) {
+	RentRecord record=new RentRecord
+			(recordJpa.getDriver().getLicenseId(),
+			recordJpa.getCar().getRegNumber(),
+			recordJpa.getRentDate(), recordJpa.getRentDays());
+	record.setCost(recordJpa.getCost());
+	record.setDamages(recordJpa.getDamages());
+	record.setGasTankPercent(recordJpa.getGasTankPercent());
+	record.setReturnDate(recordJpa.getReturnDate());
+	return record;
+}
 	@Override
 	public List<String> getAllModels() {
 		
 		return models.findAll().stream()
-				.map(ModelCrud::getModelName)
+				.map(ModelJpa::getModelName)
 				.collect(Collectors.toList());
 	}
 
@@ -284,5 +301,21 @@ RecordsRepository records;
 		
 		
 	}
+
+	@Override
+	public Iterable<String> getMostPopularModels(int yearFrom, int yearTo) {
+		Long maxCount=records.getMaxCountModels(yearFrom,yearTo);
+		List<String> res=records.getModelNamesPopular(yearFrom,yearTo,maxCount);
+		return res;
+	}
+
+	@Override
+	public Iterable<String> getMostProfitableModels() {
+		Double maxCost=records.getMaxCost();
+		List<String> res=records.getModelNamesMostProfitable(maxCost);
+		return res;
+	}
+
+	
 
 }
