@@ -20,7 +20,7 @@ import telran.cars.model.*;
 import telran.cars.dto.*;
 @SpringBootApplication
 @RestController
-@ComponentScan("telran.cars.model")
+@ComponentScan({"telran.cars.model","telran.security"})
 @EnableJpaRepositories("telran.cars.repo")
 @EntityScan("telran.cars.entities")
 public class CarsRestAppl {
