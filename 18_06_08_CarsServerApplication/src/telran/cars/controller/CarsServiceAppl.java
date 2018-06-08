@@ -23,7 +23,7 @@ import telran.cars.dto.*;
 @ComponentScan({"telran.cars.model","telran.security"})
 @EnableJpaRepositories("telran.cars.repo")
 @EntityScan("telran.cars.entities")
-public class CarsRestAppl {
+public class CarsServiceAppl {
 	@Autowired
 IRentCompany company;
 @PostMapping(value=CarsApiConstants.ADD_CAR_MODEL)
@@ -111,7 +111,7 @@ Iterable<String> getMostProfitCarModels(){
 }
 
 	public static void main(String[] args) {
-		SpringApplication.run(CarsRestAppl.class , args);
+		SpringApplication.run(CarsServiceAppl.class , args);
 
 	}
 
