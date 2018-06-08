@@ -290,7 +290,6 @@ RentRecord getRecordDto(RecordJpa recordJpa) {
 }
 	@Override
 	public List<String> getAllModels() {
-		
 		return models.findAll().stream()
 				.map(ModelJpa::getModelName)
 				.collect(Collectors.toList());
