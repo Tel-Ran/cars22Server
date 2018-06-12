@@ -1,5 +1,6 @@
 package telran.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -15,11 +16,14 @@ public class AccountingCheck implements UserDetailsService{
 	public static NoOpPasswordEncoder passwordEncoder() {
 	return (NoOpPasswordEncoder) NoOpPasswordEncoder.getInstance();
 	}
+	@Autowired
+	IAccounts accounts;
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-		if(!username.equals("Vasya"))
+		String password=accounts.getPassword(username);
+		if(password==null)
 			throw new UsernameNotFoundException("");
-		return new User(username, "12345.com",
+		return new User(username, password,
 				AuthorityUtils.createAuthorityList("ROLE_USER"));
 	}
 

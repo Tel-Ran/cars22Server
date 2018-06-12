@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +21,9 @@ import telran.cars.model.*;
 import telran.cars.dto.*;
 @SpringBootApplication
 @RestController
-@ComponentScan({"telran.cars.model","telran.security"})
+@ComponentScan({"telran.cars.model","telran.security","telran.security.mongo"})
 @EnableJpaRepositories("telran.cars.repo")
+@EnableMongoRepositories("telran.security.mongo.repo")
 @EntityScan("telran.cars.entities")
 public class CarsServiceAppl {
 	@Autowired
