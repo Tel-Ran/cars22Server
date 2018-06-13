@@ -24,7 +24,7 @@ public class AccountingCheck implements UserDetailsService{
 		if(password==null)
 			throw new UsernameNotFoundException("");
 		return new User(username, password,
-				AuthorityUtils.createAuthorityList("ROLE_USER"));
+				AuthorityUtils.createAuthorityList(accounts.getRoles(username)));
 	}
 
 }
