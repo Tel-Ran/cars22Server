@@ -1,5 +1,7 @@
 package telran.security.mongo;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,15 @@ AccountRepository accounts;
 		if(account!=null)
 			roles=account.getRoles();
 		return roles;
+	}
+
+	@Override
+	public LocalDate getExpirationDate(String username) {
+		AccountMongo account=accounts.findById(username).orElse(null);
+		LocalDate date=null;
+		if(account!=null)
+			date=account.getExpirationDate();
+		return date;
 	}
 
 }

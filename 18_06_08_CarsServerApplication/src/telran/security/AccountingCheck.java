@@ -1,5 +1,7 @@
 package telran.security;
 
+import java.time.LocalDate;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,19 +13,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 @Configuration
 public class AccountingCheck implements UserDetailsService{
-	@SuppressWarnings("deprecation")
-	@Bean
-	public static NoOpPasswordEncoder passwordEncoder() {
-	return (NoOpPasswordEncoder) NoOpPasswordEncoder.getInstance();
-	}
+	
 	@Autowired
 	IAccounts accounts;
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 		String password=accounts.getPassword(username);
-		if(password==null)
+		if(password==null||
+				accounts.getExpirationDate(username).isBefore(LocalDate.now()))
 			throw new UsernameNotFoundException("");
-		return new User(username, password,
+		return new User(username, "{bcrypt}"+password,
 				AuthorityUtils.createAuthorityList(accounts.getRoles(username)));
 	}
 

@@ -1,5 +1,7 @@
 package telran.security.mongo;
 
+import java.time.LocalDate;
+
 import org.springframework.data.annotation.*;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -9,6 +11,13 @@ public class AccountMongo {
 String username;
 String password;
 String roles[];
+LocalDate expirationDate;
+public LocalDate getExpirationDate() {
+	return expirationDate;
+}
+public void setExpirationDate(LocalDate expirationDate) {
+	this.expirationDate = expirationDate;
+}
 public AccountMongo(String username, String password, String[] roles) {
 	super();
 	this.username = username;
